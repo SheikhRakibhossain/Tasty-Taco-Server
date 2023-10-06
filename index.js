@@ -5,7 +5,6 @@ require("dotenv").config();
 const cors = require("cors");
 
 //middle war
-
 app.use(cors());
 app.use(express.json());
 
@@ -28,11 +27,25 @@ async function run() {
 
     //menu data api built here
     const menuCollection = client.db("Restaurant").collection("menu");
+    const reviewsCollection = client.db("Restaurant").collection("reviews");
+    const cartsCollection = client.db("Restaurant").collection("carts");
     // console.log("collection", menuCollection);
     app.get("/menu", async (req, res) => {
       const result = await menuCollection.find().toArray();
       res.send(result);
     });
+    app.get("/reviews", async (req, res) => {
+      const result = await reviewsCollection.find().toArray();
+      res.send(result);
+    });
+
+    //add to cart collection database
+    app.post("/carts", async(req, res)=>{
+      const item = req.body;
+      const result = await cartsCollection.insertOne(item);
+      res.send(result);
+
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
