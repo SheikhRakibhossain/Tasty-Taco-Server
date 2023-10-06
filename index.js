@@ -40,13 +40,25 @@ async function run() {
     });
 
     //add to cart collection database
-    app.post("/carts", async(req, res)=>{
+    app.post("/carts", async (req, res) => {
       const item = req.body;
       const result = await cartsCollection.insertOne(item);
       res.send(result);
+    });
+    //api get req for carts data
+    app.get("/carts", async (req, res) => {
 
-    })
+      const email = req.query.email;
+      console.log(email)
+      if(!email){
+        res.send([])
+      }
+      const query = {email: email};
+      const result = await cartsCollection.find(query).toArray();
+      res.send(result)
 
+
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
