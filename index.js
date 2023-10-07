@@ -7,6 +7,8 @@ const cors = require("cors");
 //middle war
 app.use(cors());
 app.use(express.json());
+// app.use(bodyParser.json());
+
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.dracezw.mongodb.net/?retryWrites=true&w=majority`;
@@ -27,17 +29,21 @@ async function run() {
 
     //menu data api built here
     const menuCollection = client.db("Restaurant").collection("menu");
-    const usersCollection = client.db("Restaurant").collection("users");
     const reviewsCollection = client.db("Restaurant").collection("reviews");
     const cartsCollection = client.db("Restaurant").collection("carts");
-
-    // user related api
-    app.post('/users',async(req, res)=>{
-      const body = req.body;
-      const result = await usersCollection.insertOne(body);
-      res.send(result)
-    })
+    const usersCollection = client.db("Restaurant").collection("users");
     
+    // user related api
+    app.post('/users', async (req, res) => {
+      
+        const user = req.body;
+        console.log("New user collaboration", user);
+        // Assuming usersCollection is a MongoDB collection.
+        const result = await usersCollection.insertOne(user);
+        res.send(result)
+      
+    });
+
     // console.log("collection", menuCollection);
     app.get("/menu", async (req, res) => {
       const result = await menuCollection.find().toArray();
@@ -58,7 +64,7 @@ async function run() {
     app.get("/carts", async (req, res) => {
 
       const email = req.query.email;
-      console.log(email)
+      console.log("carts",email)
       if(!email){
         res.send([])
       }
