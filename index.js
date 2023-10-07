@@ -35,7 +35,6 @@ async function run() {
     
     // user related api
     app.post('/users', async (req, res) => {
-      
         const user = req.body;
         console.log("New user collaboration", user);
         const query ={ email: user.email}
@@ -48,6 +47,13 @@ async function run() {
         res.send(result)
       
     });
+    // user get api
+    app.get('user', async(req, res)=>{
+
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+
+    })
 
     // console.log("collection", menuCollection);
     app.get("/menu", async (req, res) => {
