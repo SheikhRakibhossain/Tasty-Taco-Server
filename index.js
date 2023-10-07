@@ -38,6 +38,11 @@ async function run() {
       
         const user = req.body;
         console.log("New user collaboration", user);
+        const query ={ email: user.email}
+        const existingUser = await usersCollection.findOne(query);
+        if(existingUser){
+          return res.send({message:'user already exist'})
+        }
         // Assuming usersCollection is a MongoDB collection.
         const result = await usersCollection.insertOne(user);
         res.send(result)
