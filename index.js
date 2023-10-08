@@ -9,8 +9,23 @@ const jwt = require('jsonwebtoken');
 //middle war
 app.use(cors());
 app.use(express.json());
-// app.use(bodyParser.json());
+// jwt veriry
+const verifyJWT =(req, res, next)=>{
+const authorization = req.headers.authorization;
+if(!authorization){
+  return res.status(401).send({error:true, message:"unauthorization access token"})
+}
+const token = authorization.split(' ')[1];
+ jwt.verify(token, process.env.TOEKN_ACCESS,(error, decoded)=>{
 
+  if(error){
+    return res.status(403).send({error:true, message:"user not valid"})
+  }
+  req.decoded = decoded
+  next();
+ })
+
+}
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.dracezw.mongodb.net/?retryWrites=true&w=majority`;
@@ -94,13 +109,19 @@ async function run() {
       res.send(result);
     });
     //api get req for carts data
-    app.get("/carts", async (req, res) => {
+    app.get("/carts",verifyJWT, async (req, res) => {
 
       const email = req.query.email;
-      console.log("carts",email)
+      console.log("carts",email);
       if(!email){
         res.send([])
       }
+
+      const decodedEmail = req.decoded.email;
+      if(email !== decodedEmail){
+        return res.status(403).send({error:true, message:"forbidden access user"})
+      }
+      
       const query = {email: email};
       const result = await cartsCollection.find(query).toArray();
       res.send(result)
