@@ -3,29 +3,28 @@ const app = express();
 const port = process.env.PORT || 5000;
 require("dotenv").config();
 const cors = require("cors");
-const jwt = require('jsonwebtoken');  
-
+const jwt = require("jsonwebtoken");
 
 //middle war
 app.use(cors());
 app.use(express.json());
 // jwt veriry
-const verifyJWT =(req, res, next)=>{
-const authorization = req.headers.authorization;
-if(!authorization){
-  return res.status(401).send({error:true, message:"unauthorization access token"})
-}
-const token = authorization.split(' ')[1];
- jwt.verify(token, process.env.TOEKN_ACCESS,(error, decoded)=>{
-
-  if(error){
-    return res.status(403).send({error:true, message:"user not valid"})
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res
+      .status(401)
+      .send({ error: true, message: "unauthorization access token" });
   }
-  req.decoded = decoded
-  next();
- })
-
-}
+  const token = authorization.split(" ")[1];
+  jwt.verify(token, process.env.TOEKN_ACCESS, (error, decoded) => {
+    if (error) {
+      return res.status(403).send({ error: true, message: "user not valid" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+};
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.dracezw.mongodb.net/?retryWrites=true&w=majority`;
@@ -51,46 +50,57 @@ async function run() {
     const usersCollection = client.db("Restaurant").collection("users");
 
     // jwt token secret post api
-    app.post('/jwt', (req, res)=>{
+    app.post("/jwt", (req, res) => {
       const user = req.body;
-      const result =  jwt.sign(user, process.env.TOEKN_ACCESS, { expiresIn:'2h'});
-      res.send(result)
-    })
-    
+      const result = jwt.sign(user, process.env.TOEKN_ACCESS, {
+        expiresIn: "2h",
+      });
+      res.send(result);
+    });
+
     // user related api
-    app.post('/users', async (req, res) => {
-        const user = req.body;
-        console.log("New user collaboration", user);
-        const query ={ email: user.email}
-        const existingUser = await usersCollection.findOne(query);
-        if(existingUser){
-          return res.send({message:'user already exist'})
-        }
-        // Assuming usersCollection is a MongoDB collection.
-        const result = await usersCollection.insertOne(user);
-        res.send(result)
-      
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      console.log("New user collaboration", user);
+      const query = { email: user.email };
+      const existingUser = await usersCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: "user already exist" });
+      }
+      // Assuming usersCollection is a MongoDB collection.
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
     });
     // user get api
-    app.get('/users', async(req, res)=>{
+    app.get("/users", async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
-
-    })
-
-    //user update or make admin api
-    app.patch('/users/admin/:id', async(req, res)=>{
-      const id = req.params.id;
-      const filter = {_id: new ObjectId(id)};
-      const updateDoc ={
-        $set:{
-          role: 'admin'
-        }
+    });
+    // user admin api
+    app.get("/users/admin/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      if (req.decoded.eamil !== email) {
+        res.send({ admin: false });
       }
-      const result = await usersCollection.updateOne(filter, updateDoc);
+      const query = {email:email};
+      const user = await usersCollection.findOne(query);
+      const result = {admin.user?.role ==="admin"};
       res.send(result)
 
-    })
+    });
+
+    //user update or make admin api
+    app.patch("/users/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: "admin",
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
 
     // console.log("collection", menuCollection);
     app.get("/menu", async (req, res) => {
@@ -109,33 +119,31 @@ async function run() {
       res.send(result);
     });
     //api get req for carts data
-    app.get("/carts",verifyJWT, async (req, res) => {
-
+    app.get("/carts", verifyJWT, async (req, res) => {
       const email = req.query.email;
-      console.log("carts",email);
-      if(!email){
-        res.send([])
+      console.log("carts", email);
+      if (!email) {
+        res.send([]);
       }
 
       const decodedEmail = req.decoded.email;
-      if(email !== decodedEmail){
-        return res.status(403).send({error:true, message:"forbidden access user"})
+      if (email !== decodedEmail) {
+        return res
+          .status(403)
+          .send({ error: true, message: "forbidden access user" });
       }
-      
-      const query = {email: email};
+
+      const query = { email: email };
       const result = await cartsCollection.find(query).toArray();
-      res.send(result)
-
-
+      res.send(result);
     });
     //cart data deleted function api
-    app.delete('/carts/:id', async(req, res)=>{
-
+    app.delete("/carts/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) };
       const result = await cartsCollection.deleteOne(query);
-      res.send(result)
-    })
+      res.send(result);
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
