@@ -73,11 +73,13 @@ async function run() {
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
+    
     // user get api
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyJWT, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
+
     // user admin api
     app.get("/users/admin/:email", verifyJWT, async(req, res) => {
       const email = req.params.email;
