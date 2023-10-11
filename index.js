@@ -53,9 +53,11 @@ async function run() {
     app.post("/jwt", (req, res) => {
       const user = req.body;
       const result = jwt.sign(user, process.env.TOEKN_ACCESS, {
-        expiresIn: "2h",
+        expiresIn: "3h",
       });
       res.send(result);
+      return;
+     
     });
 
     // user related api
@@ -77,15 +79,15 @@ async function run() {
       res.send(result);
     });
     // user admin api
-    app.get("/users/admin/:email", verifyJWT, async (req, res) => {
+    app.get("/users/admin/:email", verifyJWT, async(req, res) => {
       const email = req.params.email;
-      if (req.decoded.eamil !== email) {
+      if (req.decoded.email !== email) {
         res.send({ admin: false });
       }
       const query = {email:email};
       const user = await usersCollection.findOne(query);
       const result = {admin:user?.role ==="admin"};
-      res.send(result)
+      res.send(result);
 
     });
 
