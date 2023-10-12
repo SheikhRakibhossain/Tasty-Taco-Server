@@ -121,8 +121,11 @@ async function run() {
     });
     // menu item add api
     app.post('/menu', async(req, res)=>{
-      const body = req.body;
+      const newItem = req.body;
+      const result = await menuCollection.insertOne(newItem);
+      res.send(result);
       
+
     })
     app.get("/reviews", async (req, res) => {
       const result = await reviewsCollection.find().toArray();
