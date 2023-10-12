@@ -84,7 +84,7 @@ async function run() {
     });
 
     // user get api
-    app.get("/users", verifyJWT,verifyAdmin, async (req, res) => {
+    app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
@@ -119,6 +119,11 @@ async function run() {
       const result = await menuCollection.find().toArray();
       res.send(result);
     });
+    // menu item add api
+    app.post('/menu', async(req, res)=>{
+      const body = req.body;
+      
+    })
     app.get("/reviews", async (req, res) => {
       const result = await reviewsCollection.find().toArray();
       res.send(result);
