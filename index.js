@@ -124,13 +124,14 @@ async function run() {
       const newItem = req.body;
       const result = await menuCollection.insertOne(newItem);
       res.send(result);
-      // menu items delete api
-      app.delete("/menu/:id", async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await menuCollection.deleteOne(query);
-        res.send(result);
-      });
+     
+    });
+     // menu items delete api
+     app.delete("/menu/:id",verifyJWT, verifyAdmin,  async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await menuCollection.deleteOne(query);
+      res.send(result);
     });
     // client review get api for client
     app.get("/reviews", async (req, res) => {
