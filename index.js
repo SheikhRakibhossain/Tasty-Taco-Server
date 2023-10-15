@@ -173,7 +173,7 @@ async function run() {
     });
 
     // payment card intent
-    app.post("/client-payment-intent", async (req, res) => {
+    app.post("/client-payment-intent", verifyJWT, async (req, res) => {
       // const body = req.body;
       const { price } = req.body;
       const amount = price * 100;
