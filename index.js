@@ -173,18 +173,19 @@ async function run() {
     });
 
     // payment card intent
-    app.post("/client-payment-intent", verifyJWT, async (req, res) => {
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
       // const body = req.body;
       const { price } = req.body;
       const amount = price * 100;
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
-        currency: "usd",
-        payment_method_types: ["card"],
+        currency: 'usd',
+        payment_method_types: ['card']
       });
+
       res.send({
-        clientSecret: paymentIntent.client_secret,
-      });
+        clientSecret: paymentIntent.client_secret
+      })
     });
 
     // Send a ping to confirm a successful connection
