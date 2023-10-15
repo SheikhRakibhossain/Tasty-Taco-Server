@@ -180,21 +180,43 @@ async function run() {
       const amount = price * 100;
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
-        currency: 'usd',
-        payment_method_types: ['card']
+        currency: "usd",
+        payment_method_types: ["card"],
       });
 
       res.send({
-        clientSecret: paymentIntent.client_secret
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
+    // admin dashboard document stats get api
+    app.get("/admin-stats",verifyJWT, verifyAdmin, async (req, res) => {
+
+      const users = await usersCollection.estimatedDocumentCount();
+      const products = await menuCollection.estimatedDocumentCount();
+      const orders = await cartsCollection.estimatedDocumentCount();
+      const payments = await paymentCollection.find().toArray();
+      const revenue = payments.reduce((sum, payment)=>sum + payment.price, 0);
+
+      res.send({
+        users,
+        products,
+        orders,
+        revenue
       })
     });
-
     // payment related api
-    app.post('/payments', async(req, res)=>{
+    app.post("/payments", async (req, res) => {
       const payment = req.body;
-      const result = await paymentCollection.insertOne(payment);
-      res.send(result)
-    })
+      const insertResult = await paymentCollection.insertOne(payment);
+
+      const query = {
+        _id: { $in: payment.cartItems.map((id) => new ObjectId(id)) },
+      };
+      const deleteResult = await cartsCollection.deleteMany(query);
+
+      res.send({ insertResult, deleteResult });
+    });
+    // hello
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
