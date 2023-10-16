@@ -204,6 +204,42 @@ async function run() {
         revenue
       })
     });
+    // order stats
+    app.get('/order-stats', async(req, res) =>{
+      const pipeline = [
+        {
+          $lookup: {
+            from: 'menu',
+            localField: 'foodItems',
+            foreignField: '_id',
+            as: 'menuItemsData'
+          }
+        },
+        {
+          $unwind: '$menuItemsData'
+        },
+        {
+          $group: {
+            _id: '$menuItemsData.category',
+            count: { $sum: 1 },
+            total: { $sum: '$menuItemsData.price' }
+          }
+        },
+        {
+          $project: {
+            category: '$_id',
+            count: 1,
+            total: { $round: ['$total', 2] },
+            _id: 0
+          }
+        }
+      ];
+
+      const result = await paymentCollection.aggregate(pipeline).toArray()
+      res.send(result)
+
+    })
+
     // payment related api
     app.post("/payments", async (req, res) => {
       const payment = req.body;
