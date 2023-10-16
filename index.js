@@ -225,6 +225,8 @@ async function run() {
             total: { $sum: '$menuItemsData.price' }
           }
         },
+        // ip making by grouping
+        
         {
           $project: {
             category: '$_id',
